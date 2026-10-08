@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vtracking · Fleet & Logistics</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<header><a class="brand" href="/">V<span>tracking</span></a><span class="badge">Fleet + Logistics · 0.1</span><div class="account"><span id="username"></span><button id="logout" hidden>Đăng xuất</button></div></header>
+<div id="notice" role="status" aria-live="polite"></div>
+<section id="login" class="login card"><p class="eyebrow">TRUNG TÂM ĐIỀU HÀNH</p><h1>Mỗi chuyến đi.<br>Mỗi lần bàn giao.</h1><p>Theo dõi đội xe và quản lý hành trình kiện hàng bằng tài khoản Traccar của bạn.</p><form id="login-form"><label>Email<input name="email" type="email" autocomplete="username" required></label><label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required></label><label>Mã xác thực hai bước (nếu có)<input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"></label><button class="primary">Đăng nhập</button></form><small>Dữ liệu GPS lấy từ Traccar. Dữ liệu logistics được lưu riêng trên máy chủ.</small></section>
+<main id="workspace" hidden>
+<nav aria-label="Chức năng"><button data-tab="shipments" class="selected">Kiện hàng</button><button data-tab="trips">Chuyến vận chuyển</button><button data-tab="fleet">Đội xe GPS</button></nav>
+<section class="intro"><div><p class="eyebrow">VTRACKING OPERATIONS</p><h1 id="title">Kiện hàng</h1><p id="subtitle">Từ tiếp nhận đến giao thành công — lịch sử bàn giao rõ ràng.</p></div><button id="refresh">Làm mới</button></section>
+<div class="metrics"><div class="card"><span>Kiện trong danh sách</span><strong id="count-shipments">0</strong></div><div class="card"><span>Chuyến đang chạy</span><strong id="count-trips">0</strong></div><div class="card"><span>Thiết bị được cấp quyền</span><strong id="count-fleet">0</strong></div><div class="card"><span>Đã giao thành công</span><strong id="count-delivered">0</strong></div></div>
+<section class="card content"><div class="toolbar"><label class="search">Tìm kiếm<input id="search" placeholder="Mã kiện, chuyến, tên xe…" type="search"></label><button id="create" class="primary">+ Tạo kiện hàng</button></div><div id="list"></div><small id="list-note">Hiển thị tối đa 500 bản ghi mới nhất mỗi loại, thuộc tài khoản đang đăng nhập.</small></section>
+<section id="map-panel" class="card" hidden><h2 id="map-title">Vị trí xe</h2><p id="map-caption"></p><iframe id="map" title="Bản đồ vị trí OpenStreetMap" loading="lazy" referrerpolicy="no-referrer"></iframe><div id="route-panel" hidden><h3>Hành trình 24 giờ gần nhất</h3><p id="route-note"></p><svg id="route" viewBox="0 0 700 240" role="img" aria-label="Sơ đồ tuyến GPS"></svg><small>Sơ đồ tương đối của các điểm GPS; không phải bản đồ nền. Các khoảng mất tín hiệu được ngắt đoạn.</small></div></section>
+</main>
+<dialog id="editor"><div class="dialog-head"><h2 id="editor-title"></h2><button id="editor-close" aria-label="Đóng">×</button></div><form id="editor-form"></form></dialog>
+<dialog id="detail"><div class="dialog-head"><h2 id="detail-title"></h2><button id="detail-close" aria-label="Đóng">×</button></div><div id="detail-body"></div></dialog>
+<footer>Long Ngo phát triển · Vtracking · Nền tảng GPS Traccar · Apache-2.0</footer>
+</body></html>
