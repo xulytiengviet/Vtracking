@@ -1,5 +1,11 @@
 # Vtracking — Fleet + Logistics
 
+**[Mở giao diện Map + GPS trên GitHub Pages](https://xulytiengviet.github.io/Vtracking/)**
+
+Trang công khai hiển thị dữ liệu minh họa có nhãn; không công khai dữ liệu vận đơn thật.
+Nút “Vị trí của tôi” định vị thiết bị khi người dùng cho phép. Nút “Mở hệ thống thật” mở URL máy chủ do người dùng nhập.
+
+
 Giao diện TrackVN + Map + GPS và mô-đun Fleet + Logistics tiếng Việt được bổ sung trong [`fleet-logistics/`](fleet-logistics/README.md).
 Có backend Python/SQLite, đăng nhập Traccar, quản lý kiện/chuyến, nhật ký bàn giao và giao diện web.
 Đây là bản **0.2 pilot**, cần máy chủ Traccar đang hoạt động; xem hướng dẫn và giới hạn trước khi triển khai.

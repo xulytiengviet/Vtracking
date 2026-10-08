@@ -23,3 +23,6 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: node --check static/app.js && node --check static/board.js
       - run: python -m py_compile domain.py server.py
+      - run: node pages/test-demo.cjs
+      - run: node --check pages/pages.js
+      - run: python pages/build.py && git diff --exit-code -- ../index.html

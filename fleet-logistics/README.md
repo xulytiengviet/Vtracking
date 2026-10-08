@@ -203,3 +203,19 @@ python -c "import sqlite3; s=sqlite3.connect('data/logistics.sqlite3'); d=sqlite
 
 Đối với Docker, đường dẫn DB bên trong container là /data/logistics.sqlite3.
 Định kỳ lưu bản sao ra nơi riêng và thử khôi phục khi dịch vụ dừng.
+
+## Giao diện công khai trên GitHub Pages
+
+https://xulytiengviet.github.io/Vtracking/ mở giao diện chung với adapter dữ liệu mẫu chỉ đọc.
+`../index.html` được sinh từ `static/index.html` bằng `python pages/build.py`; đường dẫn assets tương đối,
+hoạt động dưới `/Vtracking/`. Khi sửa HTML chung, chạy lại lệnh sinh trang trước khi commit.
+`.nojekyll` giúp Pages phục vụ giao diện thay vì render README.
+
+Dữ liệu mẫu định danh DEMO và banner cố định. Không có mật khẩu, token, GPS hoặc vận đơn thật trong bản Pages.
+`pages/demo.js` không gửi request đến backend và từ chối đăng nhập/các thao tác ghi.
+Nút định vị dùng Geolocation sau thao tác người dùng; vị trí thiết bị không gắn với đơn mẫu,
+không được lưu hoặc gửi vào Traccar. Bản đồ nền vẫn tải ô bản đồ từ OpenStreetMap.
+Nút mở hệ thống thật chỉ điều hướng tới URL HTTPS do người dùng nhập; không kết nối chéo cookie/CORS.
+Máy chủ Python tiếp tục phục vụ HTML gốc và API thật, không tải adapter demo.
+
+Kiểm thử: `node pages/test-demo.cjs`, `node --check pages/pages.js`, `python pages/build.py`.
