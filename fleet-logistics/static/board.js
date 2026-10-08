@@ -9,17 +9,17 @@ function validPoint(p){return p&&Number.isFinite(p.latitude)&&Number.isFinite(p.
 function recent(p){const age=Date.now()-Date.parse(p.fixTime);return p.valid&&Number.isFinite(age)&&age>=-60000&&age<=120000;}
 function initMap(){if(boardMap)return true;if(!window.L){$('#map-health').textContent='Không tải được thư viện bản đồ. Danh sách và lịch sử vẫn dùng được.';return false;}
  boardMap=L.map('live-map',{center:[15.8,107.6],zoom:5,zoomControl:true});
- const tileSources={osm:['https://tile.openstreetmap.org/{z}/{x}/{y}.png','&copy; OpenStreetMap contributors'],carto:['https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png','&copy; OpenStreetMap contributors &copy; CARTO']};
+ const tileSources={osm:['https://tile.openstreetmap.org/{z}/{x}/{y}.png','&copy; OpenStreetMap contributors'],hot:['https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png','&copy; OpenStreetMap contributors Tiles &copy; HOT / OpenStreetMap France (CC BY-SA)']};
  let base=null,failures=0,switched=false,tileTimer;
  const toolbar=document.querySelector('.map-toolbar');
- const chooser=document.createElement('select');chooser.id='map-source';chooser.setAttribute('aria-label','Nền bản đồ');chooser.innerHTML='<option value="osm">OpenStreetMap</option><option value="carto">CARTO sáng</option><option value="none">Chỉ điểm / tuyến</option>';toolbar.appendChild(chooser);
+ const chooser=document.createElement('select');chooser.id='map-source';chooser.setAttribute('aria-label','Nền bản đồ');chooser.innerHTML='<option value="osm">OpenStreetMap</option><option value="hot">OSM Humanitaire</option><option value="none">Chỉ điểm / tuyến</option>';toolbar.appendChild(chooser);
  const health=document.createElement('p');health.id='tile-health';health.setAttribute('role','status');document.querySelector('#live-map').after(health);
  function switchBase(key,automatic=false){clearTimeout(tileTimer);if(base)boardMap.removeLayer(base);base=null;failures=0;chooser.value=key;
   if(key==='none'){health.textContent='Đang xem điểm / tuyến không có nền đường phố.';return;}
-  health.textContent='Đang tải nền '+(key==='osm'?'OpenStreetMap':'CARTO')+'…';
+  health.textContent='Đang tải nền '+(key==='osm'?'OpenStreetMap':'OSM Humanitaire')+'…';
   const layer=L.tileLayer(tileSources[key][0],{maxZoom:19,attribution:tileSources[key][1]});base=layer;
-  const fallback=()=>{if(base!==layer)return;if(key==='osm'&&!switched){switched=true;switchBase('carto',true);}else health.textContent='Chưa tải được nền bản đồ qua mạng. Bạn vẫn xem được điểm, tuyến; thử đổi nguồn nền.';};
-  layer.on('tileload',()=>{if(base!==layer)return;clearTimeout(tileTimer);health.textContent=(automatic?'Đã chuyển nền dự phòng · ':'')+(key==='osm'?'OpenStreetMap':'CARTO');});
+  const fallback=()=>{if(base!==layer)return;if(key==='osm'&&!switched){switched=true;switchBase('hot',true);}else health.textContent='Chưa tải được nền bản đồ qua mạng. Bạn vẫn xem được điểm, tuyến; thử đổi nguồn nền.';};
+  layer.on('tileload',()=>{if(base!==layer)return;clearTimeout(tileTimer);health.textContent=(automatic?'Đã chuyển nền dự phòng · ':'')+(key==='osm'?'OpenStreetMap':'OSM Humanitaire');});
   layer.on('tileerror',()=>{if(base===layer&&++failures>=3)fallback();});layer.addTo(boardMap);tileTimer=setTimeout(fallback,10000);
  }
  chooser.onchange=()=>{switched=false;switchBase(chooser.value);};switchBase('osm');
