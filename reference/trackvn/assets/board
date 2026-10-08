@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi" class="">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/brand/trackvn-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Browser/OS chrome color. Default light; the inline script below swaps it
+         pre-paint when the saved theme is dark. NOT brand blue — on Android the
+         status bar paints this verbatim, and a saturated blue strip over the
+         dark photo hero clashed with the page's paper/warm palette. -->
+    <meta name="theme-color" content="#f2ece2" />
+    <!-- PWA / iOS home-screen: render standalone like a native app -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TrackVN" />
+    <meta name="description" content="Theo dõi tất cả vận đơn của bạn trên một bảng duy nhất với bản đồ hành trình." />
+    <title>Bảng theo dõi · TrackVN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Apply theme before paint to avoid flash
+      (function () {
+        try {
+          var t = localStorage.getItem('trackvn-theme');
+          if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          }
+          var l = localStorage.getItem('trackvn-lang');
+          if (l) document.documentElement.lang = l;
+          // Theme-matched browser chrome: keep the status bar on the app's own
+          // surface color instead of a fixed hue (same swap AppShell does on toggle).
+          // Dark uses #85898e — user-picked: a mid grey that sits INSIDE the
+          // hero fog's tonal range, so the bar dissolves into the photo top
+          // (see AppShell for the same constant).
+          var tc = document.querySelector('meta[name="theme-color"]');
+          if (tc && document.documentElement.classList.contains('dark')) {
+            tc.setAttribute('content', '#85898e');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="canonical" href="https://shipment-tracking-blond.vercel.app/board" />
+    <meta name="robots" content="noindex,follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TrackVN" />
+    <meta property="og:title" content="Bảng theo dõi · TrackVN" />
+    <meta property="og:description" content="Theo dõi tất cả vận đơn của bạn trên một bảng duy nhất với bản đồ hành trình." />
+    <meta property="og:url" content="https://shipment-tracking-blond.vercel.app/board" />
+    <meta property="og:image" content="https://shipment-tracking-blond.vercel.app/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TrackVN — tra cứu vận đơn đa nhà vận chuyển tại Việt Nam" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bảng theo dõi · TrackVN" />
+    <meta name="twitter:description" content="Theo dõi tất cả vận đơn của bạn trên một bảng duy nhất với bản đồ hành trình." />
+    <meta name="twitter:image" content="https://shipment-tracking-blond.vercel.app/og.jpg" />
+    <meta name="twitter:image:alt" content="TrackVN — tra cứu vận đơn đa nhà vận chuyển tại Việt Nam" />
+    <script type="module" crossorigin src="/assets/index-DCU7StYI.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-XwWMchgZ.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

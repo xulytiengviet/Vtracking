@@ -1,8 +1,8 @@
 # Vtracking — Fleet + Logistics
 
-Mô-đun Fleet + Logistics tiếng Việt được bổ sung trong [`fleet-logistics/`](fleet-logistics/README.md).
+Giao diện TrackVN + Map + GPS và mô-đun Fleet + Logistics tiếng Việt được bổ sung trong [`fleet-logistics/`](fleet-logistics/README.md).
 Có backend Python/SQLite, đăng nhập Traccar, quản lý kiện/chuyến, nhật ký bàn giao và giao diện web.
-Đây là bản **0.1 pilot**, cần máy chủ Traccar đang hoạt động; xem hướng dẫn và giới hạn trước khi triển khai.
+Đây là bản **0.2 pilot**, cần máy chủ Traccar đang hoạt động; xem hướng dẫn và giới hạn trước khi triển khai.
 
 ```bash
 cd fleet-logistics

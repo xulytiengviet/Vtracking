@@ -73,6 +73,18 @@ class DomainTests(unittest.TestCase):
         with self.store.connect() as db:
             with self.assertRaises(sqlite3.IntegrityError):db.execute('DELETE FROM events')
         self.assertEqual('K1',Store(self.store.path).shipment(1,self.s['id'])['code'])
+    def test_v1_migration_keeps_shipments(self):
+        with self.store.connect() as db:
+            db.execute('ALTER TABLE shipments DROP COLUMN carrier')
+            db.execute('ALTER TABLE shipments DROP COLUMN tracking_code')
+            db.execute('PRAGMA user_version=1')
+        upgraded=Store(self.store.path)
+        shipment=upgraded.shipment(1,self.s['id'])
+        self.assertEqual('local',shipment['carrier'])
+        self.assertEqual('',shipment['tracking_code'])
+        self.assertEqual('K1',shipment['code'])
+        self.assertEqual(1,len(shipment['events']))
+
     def test_duplicate_and_invalid_transition(self):
         self.problem(409,lambda:self.store.create_shipment(USER,self.s))
         self.problem(409,lambda:self.event('delivered',proof='X'))
@@ -136,6 +148,54 @@ class HttpTests(unittest.TestCase):
         for kind in ('received','loaded'):
             self.assertEqual(200,self.request(f'/api/shipments/{sid}/events',{'kind':kind,'trip_id':tid,'location':'Kho','request_id':'event-'+kind})[0])
         detail=json.loads(self.request('/api/shipments/'+sid)[1]);self.assertIsNone(detail['position']);self.assertEqual(3,len(detail['events']))
+    def test_board_lookup_scope_and_carrier(self):
+        self.login()
+        data={'code':'LOCAL-1','description':'Hàng','origin':'A','destination':'B','carrier':'ghn','tracking_code':'GHN-123'}
+        sid=json.loads(self.request('/api/shipments',data)[1])['id']
+        self.app.store.create_shipment({'id':2,'name':'Other'},{**data,'code':'PRIVATE'})
+        result=json.loads(self.request('/api/lookup',{'codes':['GHN-123','PRIVATE'],'carrier':'auto'})[1])
+        self.assertEqual([sid],[s['id'] for s in result['results'][0]['shipments']])
+        self.assertEqual([],result['results'][1]['shipments'])
+        self.assertFalse(result['carrier_api_connected'])
+        wrong=json.loads(self.request('/api/lookup',{'codes':['GHN-123'],'carrier':'vnpost'})[1])
+        self.assertEqual([],wrong['results'][0]['shipments'])
+        board=json.loads(self.request('/api/board')[1])
+        self.assertEqual([sid],[s['id'] for s in board['shipments']])
+        self.assertEqual([10],[p['deviceId'] for p in board['positions']])
+        self.assertEqual(400,self.request('/api/lookup',{'codes':[]})[0])
+
+    def test_live_board_binding_and_unload(self):
+        from datetime import datetime,timezone,timedelta
+        self.login()
+        sid=json.loads(self.request('/api/shipments',{'code':'LIVE','description':'Hàng','origin':'A','destination':'B'})[1])['id']
+        tid=json.loads(self.request('/api/trips',{'code':'TRIP','device_id':10,'driver':'D','origin':'A','destination':'B'})[1])['id']
+        self.request(f'/api/trips/{tid}/status',{'status':'active'})
+        for kind in ('received','loaded'):
+            self.request(f'/api/shipments/{sid}/events',{'kind':kind,'trip_id':tid,'location':'Kho','request_id':'live-'+kind})
+        session=next(iter(self.app.sessions.values()))
+        original=session['upstream'].request
+        queries=[]
+        def live(path,form=None,method=None):
+            if path=='/api/positions':return [{'deviceId':10,'latitude':10.2,'longitude':105.9,'valid':True,'fixTime':(datetime.now(timezone.utc)+timedelta(seconds=1)).isoformat()}]
+            queries.append(path)
+            return original(path,form,method)
+        session['upstream'].request=live
+        board=json.loads(self.request('/api/board')[1])
+        self.assertEqual('vehicle_inferred',board['shipments'][0]['position']['source'])
+        self.assertEqual(200,self.request('/api/route',{'device_id':10,'shipment_id':sid})[0])
+        self.assertTrue(any('/api/reports/route?' in q for q in queries))
+        self.request(f'/api/shipments/{sid}/events',{'kind':'unloaded','location':'Kho B','request_id':'unload-live'})
+        board=json.loads(self.request('/api/board')[1])
+        self.assertIsNone(board['shipments'][0]['position'])
+        self.assertIsNone(board['shipments'][0]['device_id'])
+        self.assertEqual(409,self.request('/api/route',{'device_id':10,'shipment_id':sid})[0])
+
+    def test_map_assets_and_reference_isolation(self):
+        for path in ('/board','/board.js','/board.css','/vendor/leaflet/leaflet.js','/logos/ghn.jpg'):
+            self.assertEqual(200,self.request(path)[0],path)
+        self.assertEqual(404,self.request('/reference/trackvn/saved-page.html')[0])
+        self.assertEqual(404,self.request('/%2e%2e/server.py')[0])
+
     def test_static_and_validation(self):
         status,body,headers=self.request('/')
         self.assertEqual(200,status);self.assertIn('Vtracking',body.decode());self.assertIn("frame-ancestors 'none'",headers['Content-Security-Policy'])

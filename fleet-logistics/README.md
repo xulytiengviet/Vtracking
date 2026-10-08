@@ -1,7 +1,38 @@
-# Vtracking Fleet + Logistics 0.1
+# Vtracking Fleet + Logistics 0.2 — TrackVN + Map + GPS
 
 Bản pilot có backend và giao diện tiếng Việt, bổ sung cho lõi GPS Traccar.
 Long Ngo phát triển · Apache-2.0, giữ nguyên bản quyền Traccar trong repository.
+
+## TrackVN, Map và GPS đồng bộ
+
+Trang `/` và `/board` mở bảng theo dõi sau đăng nhập: danh sách đơn bên trái, bản đồ ở giữa,
+chi tiết và các mốc bàn giao bên phải. Trên điện thoại, bản đồ và danh sách xếp dọc.
+
+- Giao diện sáng/tối, tra cứu nhiều mã, lọc trạng thái và hãng, logo từ bộ TrackVN đính kèm.
+- Lưu nhãn hãng `local/ghn/jt/spx/vnpost/futa/lex` và mã vận đơn ngoài trên mỗi kiện.
+- Tra cứu một hoặc nhiều mã đã đăng ký trong tài khoản; không báo là có dữ liệu hãng khi chưa kết nối.
+- Bản đồ Leaflet đóng gói trong repository, ô bản đồ lấy từ OpenStreetMap qua Internet.
+- Marker nhóm theo xe; nhiều kiện chung xe không bị hiểu thành nhiều thiết bị GPS.
+- Bấm đơn để xem vị trí và tuyến GPS chặng hiện tại (tối đa 24 giờ, bắt đầu không sớm hơn lúc xếp hàng).
+- Vị trí cũ/không hợp lệ có màu và nhãn riêng; đơn không có tọa độ không được đặt điểm giả.
+- Nhật ký và dữ liệu logistics lưu trên backend; localStorage chỉ lưu lựa chọn sáng/tối.
+- Toàn bộ bộ HTML/assets gốc được giữ tại `../reference/trackvn/` để đối chiếu,
+  không chạy script extension/analytics/service worker từ bản xuất trình duyệt.
+
+**Bộ đính kèm không có backend tra cứu hãng.** Bản này chưa tự lấy trạng thái từ GHN/J&T/SPX/VNPost/Futa/LEX.
+Chỉ nhập nhãn hãng/mã vận đơn không tạo ra GPS của bưu phẩm. GPS có thật phải đến từ Traccar,
+liên kết chuyến và sự kiện xếp hàng; backend hãng cần tích hợp riêng bằng quyền truy cập phù hợp.
+Không tái sử dụng hoặc vô hiệu hóa xác minh Turnstile của website nguồn.
+
+API bổ sung:
+
+| Phương thức | Endpoint | Nội dung |
+|---|---|---|
+| GET | /api/board | Kiện, chuyến, thiết bị, GPS và thời gian đồng bộ theo quyền |
+| POST | /api/lookup | codes: mảng 1–100 mã; carrier: auto hoặc mã hãng |
+| POST | /api/route | device_id; thêm shipment_id để giới hạn tuyến vào chặng của kiện |
+
+Không có API public tracking không xác thực. Dữ liệu vẫn cách ly theo tài khoản.
 
 ## Đã thực hiện
 
@@ -103,15 +134,15 @@ Sơ đồ tuyến là phép chiếu tương đối các tọa độ, không thay
 - Một bản ghi shipment tương ứng một kiện. Chưa có đơn hàng cha chứa nhiều kiện, pallet/container.
 - Bằng chứng giao hàng là mã/tham chiếu do nhân viên nhập, chưa có upload ảnh, chữ ký, OTP xác minh.
 - Chưa có QR/RFID, ứng dụng tài xế, ghi bàn giao offline, public tracking link, ETA/tối ưu tuyến, EPCIS.
-- Giao diện danh sách giới hạn 500 bản ghi mới nhất mỗi loại; chỉ số tính trên danh sách này.
-- Fleet polling 30 giây khi đang mở mục Đội xe; chưa dùng WebSocket. Vị trí kiện cập nhật khi mở lại chi tiết.
+- Bảng theo dõi tải toàn bộ bản ghi của tài khoản; cần phân trang server-side khi triển khai dữ liệu lớn.
+- GPS polling 15 giây khi trang đang mở; chưa dùng WebSocket. Bảng theo dõi cập nhật marker và chi tiết kiện đang chọn.
 - SQLite phù hợp pilot một instance. Không chạy nhiều replica dùng chung file SQLite qua network filesystem.
 - Phiên lưu trong RAM, hết hạn sau 8 giờ, mất khi khởi động lại. Mật khẩu không lưu.
 - HTTP server chuẩn Python phục vụ pilot nội bộ sau reverse proxy; chưa kiểm thử tải, HA hay penetration test.
   Reverse proxy cần giới hạn kết nối, tốc độ và timeout trước khi mở Internet.
 - Nhật ký append-only ở mức ứng dụng/DB trigger, không phải chữ ký số hay bằng chứng chống quản trị viên sửa DB.
 - Chưa có quy trình sửa sai nghiệp vụ; không xóa log thủ công. Cần sự kiện hiệu chỉnh ở phiên bản tiếp theo.
-- Không tự nâng cấp schema ngoài phiên bản 1; sao lưu trước các bản nâng cấp sau.
+- Schema v2 tự bổ sung carrier/tracking_code cho DB v1, giữ nguyên dữ liệu. Sao lưu trước khi nâng cấp.
 
 ## API
 
@@ -156,6 +187,7 @@ phải có kế hoạch di chuyển tài khoản/dữ liệu đồng bộ.
 cd fleet-logistics
 python -m unittest discover -s tests -v
 node --check static/app.js
+node --check static/board.js
 ```
 
 Bộ kiểm thử bao gồm HTTP dùng Traccar giả lập, cách ly tài khoản, quyền xe/read-only,

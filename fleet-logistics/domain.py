@@ -68,6 +68,12 @@ class Store:
                   BEGIN SELECT RAISE(ABORT, 'events are append-only'); END;
                 PRAGMA user_version=1;
             ''')
+            columns = {row[1] for row in db.execute('PRAGMA table_info(shipments)')}
+            if 'carrier' not in columns:
+                db.execute("ALTER TABLE shipments ADD COLUMN carrier TEXT NOT NULL DEFAULT 'local'")
+            if 'tracking_code' not in columns:
+                db.execute("ALTER TABLE shipments ADD COLUMN tracking_code TEXT NOT NULL DEFAULT ''")
+            db.execute('PRAGMA user_version=2')
 
     @contextmanager
     def connect(self):
@@ -92,7 +98,7 @@ class Store:
             raise Problem(404, 'Không tìm thấy.')
         with self.connect() as db:
             return [dict(r) for r in db.execute(
-                f'SELECT * FROM {table} WHERE owner=? ORDER BY created_at DESC LIMIT 500', (owner,))]
+                f'SELECT * FROM {table} WHERE owner=? ORDER BY created_at DESC', (owner,))]
 
     def shipment(self, owner, identifier):
         with self.connect() as db:
@@ -104,6 +110,10 @@ class Store:
     def create_shipment(self, user, data):
         values = {k: field(data, k, k in ('code', 'description', 'origin', 'destination'))
                   for k in ('code', 'description', 'origin', 'destination', 'source', 'lot')}
+        carrier = field(data, 'carrier', False, 40) or 'local'
+        if carrier not in ('local', 'ghn', 'jt', 'spx', 'vnpost', 'futa', 'lex'):
+            raise Problem(400, 'Nhà vận chuyển không hợp lệ.')
+        tracking_code = field(data, 'tracking_code', False, 100)
         identifier, timestamp = str(uuid.uuid4()), now()
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -114,6 +124,8 @@ class Store:
                     (identifier, user['id'], *values.values(), timestamp, timestamp))
             except sqlite3.IntegrityError:
                 raise Problem(409, 'Mã kiện đã tồn tại.') from None
+            db.execute('UPDATE shipments SET carrier=?, tracking_code=? WHERE id=?',
+                       (carrier, tracking_code, identifier))
             db.execute('''INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
                        (str(uuid.uuid4()), user['id'], identifier, 'created', timestamp,
                         str(user['name']), values['origin'], 'Khởi tạo kiện hàng', '', None,
